@@ -1,0 +1,193 @@
+title: "Exploring the BRFSS data"
+output: 
+  html_document: 
+    fig_height: 4
+    highlight: pygments
+    theme: spacelab
+---
+
+## Setup
+
+### Load packages
+
+```{r load-packages, message = FALSE}
+library(ggplot2)
+library(dplyr)
+library(statsr)
+```
+
+### Load data
+
+Make sure your data and R Markdown files are in the same directory. When loaded
+your data file will be called `brfss2013`. Delete this note when before you submit 
+your work. 
+
+```{r load-data}
+load("~/4tiY2fqCQa-YmNn6gnGvzQ_1e7320c30a6f4b27894a54e2de50a805_brfss2013.RData")
+```
+```{r view-brfss2013}
+str(brfss2013)
+```
+* * *
+
+## Part 1: Data
+
+Question One: (3 points) Describe how the observations in the sample are collected, and the implications of this data collection method on the scope of inference (generalizability / causality). Note that you will need to look into documentation on the BRFSS to answer this question. See http://www.cdc.gov/brfss/ as well as the "More information on the data" section below.
+
+Answer One:
+Discription about BRFSS:According to CDS's definition, this dataset is a combination of Behavioral Risk Factor Surveillance System (BRFSS), which is the nation’s premier system of health-related surveys that collect state data about U.S. residents regarding their health-related risk behaviors. "Established in 1984 with 15 states, BRFSS now collects data in all 50 states as well as the District of Columbia and three U.S. territories. BRFSS completes more than 400,000 adult interviews each year, making it the largest continuously conducted health survey system in the world" (CDC,2020,p.1).
+
+The methodolgy of collecting observations:BRFSS uses telephone survey that state health departments conduct monthly over landline telephones and cellular telephones with a standardized questionnaire and technical and methodological assistance from CDC. In conducting the BRFSS landline telephone survey, interviewers collect data from a randomly selected adult in a household. In conducting the cellular telephone version of the BRFSS questionnaire, interviewers collect data from an adult who participates by using a cellular telephone and resides in a private residence or college housing" (CDC, 2020,p.1)
+
+Scope of Inference: 
+
+Generalizability:Although the survey were collected among 50 states with 330 variables and 14,753,250 obversations, its collecting methodology is restricted through telephone investigation that neglects several non-phone users and respondents who refused to share individual information, which causes biased results that could not provide random sampling environment for entire American population.
+
+Causality: Because BRFSS is an oberservational research that random distribution is not acceptable, it does not guarantee the causal relationships amid variables. The only relationship could be identified as an association.
+
+```{r num_varibles&rows}
+dim(brfss2013)
+```
+```{r calulation}
+30*491775
+```
+---
+Reference
+---
+CDC (2020) The Behavioral Risk Factor Surveillance System (BRFSS) - 2013.https://d3c33hcgiwev3.cloudfront.net/_e34476fda339107329fc316d1f98e042_brfss_codebook.html?Expires=1594339200&Signature=DTlfZ40r95ufLavYtI~BSOkdcDyhhFLmvDfSpKyLH-5L4EKdm--DULmVms8qM4gu9I5j9RB5ZB2yh53-tMkf6sd0CYP1KaJzQCbAcCSxV~BIVNGLPGF5R2Bhal46tXP-Z9GGI5jAwkUCEofksXviUPoc2D7Lu5tWSGdfaVH1~Rc_&Key-Pair-Id=APKAJLTNE6QMUY6HBC5A [Accessed at July 8th 2020]
+
+***
+
+## Part 2: Research questions
+
+Question Two:(11 points) Come up with at least three research questions that you want to answer using these data. You should phrase your research questions in a way that matches up with the scope of inference your dataset allows for. Make sure that at least two of these questions involve at least three variables. You are welcomed to create new variables based on existing ones. With each question include a brief discussion (1-2 sentences) as to why this question is of interest to you and/or your audience.
+
+Research question 1: Does smoking have a postive correlation with Education Level or Pregnancy?
+
+The hypothesis part I is that higher level of education will choose to smoke less (negative correlation) since systematic education will teach more information about the harmful aspects of smoking that deeply impresses students than the others. While the hypothesis part II is that when people are pregnant, they prefer to change the preference of smoking (negative correlation) to protect their unborn children.
+
+Total Variables Used:3
+
+1.pregnant: Pregnancy Status
+
+2.educa: Education Level 
+
+3.X_rfsmok3: Current Smoking Calculated Variable
+
+
+Research question 2: Do Alabama people who sleep more feel physical healthier?
+
+The hypothesis is that several people believe the longer sleep they have, the healthier body they are. Thus, in consideration of data scale, I chose Alabama people as oberservation to find the connection between their sleeping durartion and the days they feel not good on physical health. I hope there is a negative relationship between 'Number Of Days Physical Health Not Good' and 'How Much Time Do You Sleep'.
+
+Total Varibles Used:2
+
+1.physhlth: Number Of Days Physical Health Not Good
+
+2.sleptim1: How Much Time Do You Sleep
+
+
+Research question 3: Does smoking 100 cigarettes a day cause asthma and health problems?
+
+In this hypothesis, I believe smoking 100 cigartees per day will severely cause lung diseases and relevant physcial and mental problems. I will try to find out the negative relationships among 'Smoked At Least 100 Cigarettes' and 'Asthma During Past 12 Months' & 'Physical Or Mental Health'.
+
+
+Total Varibles Used:3
+
+1.asattack: Asthma During Past 12 Months
+
+2.smoke100: Smoked At Least 100 Cigarettes
+
+3.poorhlth: Poor Physical Or Mental Health
+* * *
+
+## Part 3: Exploratory data analysis
+
+Research question 1:Does smoking have a postive correlation with Education Level or Pregnancy?
+
+First, I selected three variables from dataset(brfss2013) to analyse:_rfsmok3, X_educag, pregnant. Remember Rstudio will ignore the code with X_ in the front.
+
+```{R select_data_question1}
+question1 <- brfss2013 %>% 
+select(X_rfsmok3, educa, pregnant)
+summary(question1)
+```
+
+Briefly,several information came out from three variables.
+Since there are still some non-respondent answers. We should filter out those NA data (without any meaning) first.
+```{r filter_out}
+question1 <-  question1 %>%
+filter(!is.na(X_rfsmok3), !is.na(educa), !is.na(pregnant))
+```
+
+Because both Pregnancy and Education Level variables belong to categorical variables, they could not be identified by machine lanaguage. Thus, it is neccessary to 'count' the numbers of categorical variables for transferring them into numerical variables.
+Also, it is useful to show the frequcency of each variables for further usage.
+```{r question1.sum}
+question1.sum <- question1 %>% 
+group_by(pregnant,  educa, X_rfsmok3) %>% 
+summarise(count = n()) %>%
+mutate(freq = count / sum(count))
+knitr::kable(question1.sum[,c("pregnant","educa", "X_rfsmok3","freq")])
+```
+
+Based on the data above, I could transfer them into plot to oberseve the correlation. Bar chart was chosen for displaying.
+
+```{r bar-chart-Levelofeducation}
+ggplot(question1, aes(x= educa, fill = X_rfsmok3)) + geom_bar() + theme(axis.text.x = element_text(angle = 45,hjust = 1)) + labs( x = "Level of Education",fill ="Smoke Condition")
+```
+
+```{r bar-chart-pregenant}
+ggplot(question1, aes(x = pregnant, fill = X_rfsmok3)) + geom_bar() + labs( x = "Pregnant condition",fill = "Smoke Condition")
+```
+
+Conclusion:both two figures show negative correlation in pregnancy or level of education about whether to smoke (None-smokers contain as a huge proportion). It is the fact that  when interviees are pregnant, almost no one will choose to smoke. Also, when more increasingly amount of people are educated, they refuse smoking.
+
+Research question 2: Do Alabama people who sleep more feel physical healthier?
+
+First, I need to filter the data of Albama people out from entire state dataset.
+
+```{r question2_alabama}
+question2_alabama <- brfss2013 %>%
+filter(X_state == "Alabama")
+```
+
+Then I need to figure out two targeted variables (sleptim1 and physhlth) from the other irrelevant dataset. Since I treat 'sleptiml' and 'physhlth' as explanatory and repsonse variables respectively, I primiarily arrange 'sleptiml' decreasingly.
+```{r filterout}
+question2 <- question2_alabama %>%
+summarise(physhlth,sleptim1) %>%
+arrange(-physhlth)
+```
+
+Then, as the same, I have to filter out the NA data in both 'sleptim1' and 'physhlth'.
+``` {r filter_out_data}
+question2 <-question2 %>%
+filter(! is.na(physhlth),!is.na(sleptim1))
+```
+
+Finally, I use scatterpoint analysis to find the relationship between sleeping time and physical health.
+```{r visualisation}
+ggplot(question2,aes(x = sleptim1,y = physhlth)) + geom_point() + labs( x = "How Long Do you sleep",  y = "Number Of Days Physical Health Not Good")
+```
+
+Conclusion: There is not a strong correlation between two variables within 3-12 hours sleep, but when Alamaban's sleeping time exceeds 13 hours, they feel more relaxed in physical aspect.
+
+research question 3: Does smoking 100 cigarettes a day cause asthma and health problems?
+
+First, I should select three targeted varibles out of the data cluster. Then I should get rid of NA data and count the rest data into numerical variables.Then I want to see each porportion of three variables when they are formed together.
+``` {r clean_build}
+question3<-brfss2013%>%
+filter(!is.na(asattack),!is.na(smoke100),!is.na(poorhlth))%>%
+group_by(asattack,smoke100,poorhlth)%>%
+summarise(count=n())%>%
+mutate(freq=count/sum(count))
+knitr::kable(question3[,c("asattack","smoke100", "poorhlth","freq")])
+```
+
+Let's display the data into plots to see if the association is negative. I use both bar chart and boxplot to explain.
+```{r ASTHMA RISK}
+ggplot(question3, aes(x=smoke100, fill = asattack)) +geom_bar()+labs(title="Smoking versus Asthma Risk", x = "Somke 100 Cigarette per Day", fill= "Being asthma")
+```
+```{r run}
+ggplot(question3, aes(x=factor(smoke100), y=poorhlth))+geom_boxplot()
+```
+
+Conclusion: Surprisingly, both results were similar in trials. Smoking was not associated with the risk of asthma, and smoking was not associated with the number of days of bad health. The only finding was that there were more smokers than nonsmokers on both asthma test and on healthy days test.
